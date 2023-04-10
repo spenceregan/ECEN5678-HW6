@@ -1,0 +1,213 @@
+---
+title: 'ECEN 5407 Homework #6'
+author: 'Spencer Egan'
+output:
+  pdf_document: 
+    fig_caption: yes
+    extra_dependencies: ["amsmath", "amssymb", "dsfont"]
+  html_document:
+    code_folding: show
+    theme:
+      bg: '#202123'
+      fg: '#B8BCC2'
+      primary: '#EA80FC'
+      secondary: '#00DAC6'
+      base_font:
+        google: Prompt
+      heading_font:
+        google: Proza Libre
+---
+
+```{r setup, include=FALSE}
+if (requireNamespace("thematic")) 
+  thematic::thematic_rmd(font = "auto")
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, tidy = TRUE)
+```
+
+```{r Libraries, include=FALSE}
+library(tidyverse)
+library(stats)
+library(showtext)
+library(deSolve)
+```
+
+## Problem 1.
+
+### (i)
+We can quickly see that $\dot{x} = 0$ when either $x = 0$ or  $(1 - \frac{x}{\kappa}) = 0$. This second term is zero when $x = \kappa$. $\dot{x} = 0$ at no other points so these are the two equilibrium points.
+
+### (ii)
+We wish to solve the ODE
+\begin{equation*}
+  \frac{dx}{dt} = rx(1-\frac{x}{\kappa}).
+\end{equation*}
+Rearranging and taking the integral of both sides we have
+\begin{equation}
+  \int \frac{1}{x(1-\frac{x}{\kappa})} dx = \int r dt.
+\end{equation}
+Now, $\frac{1}{x(1-\frac{x}{\kappa})}$ can be decomposed into two fractions of the form $\frac{a}{x} + \frac{b}{1-\frac{x}{\kappa}}$ such that by equating coefficients in $x$ we have $b - \frac{a}{\kappa} = 0$ and $a = 1$. From this we see that $b = \frac{1}{\kappa}$, which allows us to write (1) as 
+\begin{equation*}
+  \int \frac{1}{x} dx + \int \frac{1}{\kappa (1 - \frac{x}{\kappa})} dx = \int r dt.
+\end{equation*}
+Integrating, expoentiating and rearranging in terms of x we have
+\begin{equation*}
+  \begin{aligned}
+    \ln{x} - \ln{(\kappa - x)} &= rt + C \\
+    \frac{x}{(\kappa - x)} &= C' e^{rt} \\
+    x &= \kappa C' e^{rt} - x C' e^{rt} \\
+    x (1 + C' e^{rt}) &= \kappa C' e^{rt} \\
+    x &= \frac{\kappa C' e^{rt}}{1 + C' e^{rt}} \\
+    x &= \frac{\kappa e^{rt}}{\frac{1}{C'} + e^{rt}}.
+  \end{aligned}
+\end{equation*}
+Solving for our constant $C'$ in terms of $x(0)$ we see that
+\begin{equation*}
+  \begin{aligned}
+    x(0) &= \kappa C' - x(0) C'\\
+    C' &= \frac{x(0)}{\kappa - x(0)}.
+  \end{aligned}
+\end{equation*}
+Plugging this into our general expression for $x$ we see that 
+\begin{equation*}
+  \begin{aligned}
+    x &= \frac{\kappa e^{rt}}{\frac{\kappa-x(0)}{x(0)} + e^{rt}} \\
+    &= \frac{\kappa x(0) e^{rt}}{\kappa-x(0) + x(0) e^{rt}} \\
+    &= \frac{\kappa x(0) e^{rt}}{\kappa + x(0)(e^{rt} - 1)}
+  \end{aligned}
+\end{equation*}
+
+### (iii)
+We know that $x=0$ and $x=\kappa$ are the two equilibrium points. Checking the value of $\dot{x}$ for $0 < x < \kappa$ we see that both terms of $\dot{x}$ are positive and therefore $x(t)$ will monotonically increase towards $\kappa$ for $0 < x(0) < \kappa$. Since $\dot{x}$ is continuous and differentiable in this region, and equal to $0$ at $x=\kappa$ we know that $x(t)$ asymptotically approaches zero if $x(0)$ is within these bounds.
+
+### (iv)
+for $\kappa < x$,  $rx$ will of course always be greater than zero, and $(1 - \frac{x}{\kappa})$ will always be less than zero, meaning that in this region $x(t)$ will be monotonically decreasing. Since again $\dot{x}$ is continuous and differentiable in this region, $x(t)$ asymptotically approaches $\kappa$ for $k < x(0)$.
+
+## Problem 2.
+We consider the non-linear system:
+\begin{equation*}
+  \begin{aligned}
+    \dot{x_1} &= -2x_1 - 2x_2 - 4x_1^3x_2^2\\
+    \dot{x_2} &= -2x_1 - 2x_2 - 2x_1^4x_2
+  \end{aligned}
+\end{equation*}
+
+where we have assumed that the coefficient of the $x_1^4x_2$ term in $\dot{x_2}$ is not a $4$ as stated in the problem.
+
+Noticing the symmetry of the system, we note that can be expressed as a negative gradient dynamical system $\dot{x} = - \nabla V(x)$ where $V(x) = x_1^2 + x_2^2 + 2x_1x_2 + x_1^4x_2^2$ which we can rewrite as $V(x) = (x_1 + x_2)^2 + x_1^4x_2^2$. Clearly, since all terms have even powers, we see that
+\begin{equation}
+  V(x) > 0 \ \ \forall \ \ x \in \mathbb{R}^2 \setminus \{0\}.
+\end{equation}
+Taking the Lie derivative of $V$ with respect to the function $f(x) = \dot{x}$ we see that 
+\begin{equation*}
+  \begin{aligned}
+    \mathcal{L}_fV(x) &= (2x_1 + 2x_2 + 4x_1^3x_2^2)(-2x_1 - 2x_2 - 4x_1^3x_2^2) + (2x_2 + 2x_1 + 2x_1^4x_2)(2x_2 + 2x_1 + 2x_1^4x_2)\\
+    &= -(2x_1 + 2x_2 + 4x_1^3x_2^2)^ - (2x_2 + 2x_1 + 2x_1^4x_2)^2
+  \end{aligned}
+\end{equation*}
+Since both terms are negatives of squared numbers, we see that 
+\begin{equation}
+  \mathcal{L}_fV(x) = \dot{V}(x) < 0 \ \ \forall \ \  x \in \mathbb{R}^2 \setminus \{0\}.
+\end{equation}
+From (2) and (3), combined with the fact that $\lim_{x \to \infty} V(x) = \lim_{x \to -\infty} V(x) = \infty$ we know that our dynamical system is globally asymptotically stable with a region of attraction of all of $\mathbb{R}^2$.
+
+## Problem 3.
+
+We model the coupled Kuramoto oscillators across a range of different values for the coupling constant $K$. We notice that partial synchronization occurs for values of $K$ greater than $1$, and strong synchronization occurs for values of $K$ greater than about $1.4$.
+
+```{r}
+N <- 10
+Klist <- c(0.1,1,1.15,1.25,1.3,1.35,1.4,1.45,2)
+
+Kuramoto <- function(time, theta, pars) {
+  with(as.list(c(theta, pars)),{
+    n <- length(theta)
+    th_dot <- rep(0,5)
+    for(i in 1:n){
+      th_diff <- theta[i] - theta
+      th_dot[i] <- omega[i] - (Kpar/n) * sum(sin(th_diff))
+    }
+  return(list(th_dot))
+  })
+}
+
+
+times <- seq(0,50,0.025)
+theta0 <- sample(seq(-pi,pi,0.02),N,TRUE)
+omega = seq(-1,1, length.out=N)
+
+sims = data.frame(matrix(ncol = N+2, nrow = 0))
+colnames(sims) <- c('time', 'K', paste('X', 1:N, sep = ''))
+facet_lbl <- rbind(t(Klist), t(paste('K =',Klist)))
+colnames(facet_lbl) <- facet_lbl[1,]
+facet_lbl <- facet_lbl[2,]
+
+for(k in Klist){
+  params <- list(Kpar = k, omega = omega)
+  sim <- ode(theta0, times, Kuramoto, params)
+  sim <- data.frame(sim) %>% mutate(K = k)
+  sims <- bind_rows(sims, sim)
+}
+
+plt_kuramoto <- sims %>% 
+  pivot_longer(!c('time', 'K'), names_to = 'oscillator', values_to = 'phase') %>%
+  mutate(phase = cos(phase), oscillator = as.integer(str_sub(oscillator, -1))) %>% 
+  ggplot(aes(time, phase, color = as.factor(oscillator))) + geom_line() + 
+  facet_wrap(facets = vars(K), labeller = as_labeller(facet_lbl)) + 
+  labs(y='cos(theta)', color = 'oscillator')
+
+plt_kuramoto
+```
+The code below animates the dynamics of the particles phase around the unit circle for $K=1.3$. A gif of this animation is included with this hoimework submission as a seperate file.
+
+```{r eval=FALSE}
+params_crit <- list(Kpar = 1.3, omega = omega)
+theta0 <- sample(seq(-pi,pi,0.02),N,TRUE)
+times_anim <- seq(0,200,0.2)
+sim_anim <- ode(theta0, times, Kuramoto, params_crit)
+
+anm_kuramoto <- data.frame(sim_anim) %>%
+  pivot_longer(!c('time'), names_to = 'oscillator', values_to = 'theta') %>%
+  mutate(X = cos(theta), Y = sin(theta), 
+         oscillator = as.integer(str_sub(oscillator, -1))) %>%
+  select(-c('theta')) %>%
+  ggplot(aes(X, Y, color = as.factor(oscillator))) + geom_point() + 
+  labs(x='cos(theta)', y='sin(theta)', color = 'oscillator') + 
+  theme(aspect.ratio = 1) + transition_time(time) + ease_aes('linear')
+
+anm_kuramoto
+```
+
+## Problem 4.
+
+### (1)
+We see that the transition matrix $A$ is given by
+\begin{equation*}
+  A = \begin{bmatrix}
+        1 & 0 \\
+        \alpha & (1-\alpha)
+      \end{bmatrix}
+\end{equation*}
+Clearly $A$ is row-stochastic since $\alpha + (1-\alpha) = 1$.
+
+### (ii)
+Since $A$ is row stochastic, we immediately know that $1$ is an eigenvalue and that $\begin{bmatrix} 1 & 1 \end{bmatrix}^\top$ is the associated right eigenvector. To solve for the left eigenvector associated with the eigenvalue of $1$, we solve the system of equations $a + b = a$ and $b(1-\alpha) = b$. Clearly $b=0$ and so the left eigenvector associated with the eigenvalue of $1$ to be $\begin{bmatrix} 1 & 0 \end{bmatrix}^{\top}$.
+
+The characteristic equation for this matrix is given by $(\lambda - 1)(\lambda - (1 - \alpha)$. Clearly the roots are given by $\{1, (1-\alpha)\}$. For the second eigenvalue $(1-\alpha)$ we can see that right eigenvector is given by $\begin{bmatrix} 0 & 1 \end{bmatrix}^{\top}$ and the left eigenvector is given by $\begin{bmatrix} 1 & -1 \end{bmatrix}^{\top}$.
+
+### (iii)
+The graph associated with this algorithm has self loops at every node, and has a directed edge from node $2$ to node $1$, but no directed edge from node $1$ to node $2$. The graph is drawn below in figure 1.
+
+![(ii) digraph of A](images/digraph.png){height=25%}
+
+### (iv)
+The condensation graph is drawn below in figure 2.
+
+![(ii) condensation graph of A](images/condensation.png){height=25%}
+
+### (v)
+Since $\alpha>0$ we know that the eigenvalue $1$ is simple, and therefore from Theorem 5.1 of [Bullo, 2022] we know that 
+\begin{equation*}
+  \lim_{k \to \infty}x(k) = (\begin{bmatrix} 1 & 0 \end{bmatrix}x(0)) \mathds{1} \begin{bmatrix} x(0)_1 & x(0)_1 \end{bmatrix}^\top
+\end{equation*}
+where we have defined $x(0) = \begin{bmatrix} x(0)_1 & x(0)_2 \end{bmatrix}^\top$.
+  
